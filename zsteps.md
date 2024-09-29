@@ -57,11 +57,11 @@ lib
 dbConnect.ts
 
 `import mongoose from "mongoose";
-type ConnectionObject = {
-  isConnected?: number;
-};
-const connection: ConnectionObject = {};
-async function dbConnect(): Promise<void> {
+    type ConnectionObject = {
+      isConnected?: number;
+    };
+    const connection: ConnectionObject = {};
+    async function dbConnect(): Promise<void> {
   if (connection.isConnected) {
     console.log("Already Connected to database");
     return;
@@ -77,3 +77,28 @@ async function dbConnect(): Promise<void> {
 }
 export default dbConnect;
 `
+
+# Resend email
+
+see the documentation and follow those steps
+
+make an api to send the email
+
+# Create an api in next js
+
+folder structure
+
+    api
+      sig-up
+        route.ts
+
+        `export asyunc function POST (request: Request){
+          dbConnect();
+          try{
+
+          }
+          catach{}
+        }`
+
+# NEXTAUTH JS
+
