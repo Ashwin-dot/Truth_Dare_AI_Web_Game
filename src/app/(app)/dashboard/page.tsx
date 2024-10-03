@@ -1,220 +1,125 @@
+// "use client";
+
+// import { Button } from "@/components/ui/button";
+// import { Separator } from "@/components/ui/separator";
+// import { useToast } from "@/components/ui/use-toast";
+
+// import { useRouter } from "next/navigation"; // Import useRouter for navigation
+// import { useSession } from "next-auth/react";
+// import React, { useEffect, useState } from "react";
+
+// function UserDashboard() {
+//   const { data: session } = useSession();
+//   const { toast } = useToast();
+//   const router = useRouter();
+
+//   // Check if session is available
+//   useEffect(() => {
+//     if (!session || !session.user) {
+//       // Optionally, you could redirect to a login page here
+//       return;
+//     }
+//   }, [session]);
+
+//   const handlePlay = (gameType: string) => {
+//     router.push(`/play?type=${gameType}`); // Redirect to the game page with the type
+//   };
+
+//   if (!session || !session.user) {
+//     return <div>Loading...</div>; // Consider a loading state or redirect to login
+//   }
+
+//   return (
+//     <div className="relative my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
+//       <h1 className="text-4xl font-bold mb-4">Play Game</h1>
+//       <div className="flex flex-col gap-4">
+//         {/* Game mode buttons */}
+//         <Button onClick={() => handlePlay("quickplay")} variant="outline">
+//           Quick Play
+//         </Button>
+//         <Button onClick={() => handlePlay("coupleplay")} variant="outline">
+//           Couple Play
+//         </Button>
+//         <Button onClick={() => handlePlay("broplay")} variant="outline">
+//           Bro Play
+//         </Button>
+//         <Button onClick={() => handlePlay("pokyplay")} variant="outline">
+//           Pokie Play (girls Play)
+//         </Button>
+//       </div>
+//       <Separator className="my-4" />
+//     </div>
+//   );
+// }
+
+// export default UserDashboard;
+
 "use client";
 
-import { MessageCard } from "@/components/MessageCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import { Message } from "@/model/User";
-import { ApiResponse } from "@/types/ApiResponse";
-import { zodResolver } from "@hookform/resolvers/zod";
-import axios, { AxiosError } from "axios";
-import { Loader2, RefreshCcw } from "lucide-react";
-import { User } from "next-auth";
+
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 import { useSession } from "next-auth/react";
-import React, { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { AcceptMessageSchema } from "@/schemas/acceptMessageSchema";
-import Spinner from "../spinner";
+import React, { useEffect } from "react";
 
 function UserDashboard() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSwitchLoading, setIsSwitchLoading] = useState(false);
-
-  const { toast } = useToast();
-
-  const handleDeleteMessage = (messageId: string) => {
-    setMessages(messages.filter((message) => message._id !== messageId));
-  };
-
   const { data: session } = useSession();
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const form = useForm({
-    resolver: zodResolver(AcceptMessageSchema),
-  });
-
-  const { register, watch, setValue } = form;
-  const acceptMessages = watch("acceptMessages");
-
-  const fetchAcceptMessages = useCallback(async () => {
-    setIsSwitchLoading(true);
-    try {
-      const response = await axios.get<ApiResponse>("/api/accept-messages");
-      setValue("acceptMessages", response.data.isAcceptingMessages);
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
-      toast({
-        title: "Error",
-        description:
-          axiosError.response?.data.message ??
-          "Failed to fetch message settings",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSwitchLoading(false);
-    }
-  }, [setValue, toast]);
-
-  const fetchMessages = useCallback(
-    async (refresh: boolean = false) => {
-      setIsLoading(true);
-      setIsSwitchLoading(false);
-      try {
-        const response = await axios.get<ApiResponse>("/api/get-messages");
-        setMessages(response.data.messages || []);
-        if (refresh) {
-          toast({
-            title: "Refreshed Messages",
-            description: "Showing latest messages",
-          });
-        }
-      } catch (error) {
-        const axiosError = error as AxiosError<ApiResponse>;
-        toast({
-          title: "Error",
-          description:
-            axiosError.response?.data.message ?? "Failed to fetch messages",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-        setIsSwitchLoading(false);
-      }
-    },
-    [setIsLoading, setMessages, toast]
-  );
-
-  // Fetch initial state from the server
+  // Check if session is available
   useEffect(() => {
-    if (!session || !session.user) return;
-
-    fetchMessages();
-
-    fetchAcceptMessages();
-  }, [session, setValue, toast, fetchAcceptMessages, fetchMessages]);
-
-  // Handle switch change
-  const handleSwitchChange = async () => {
-    try {
-      const response = await axios.post<ApiResponse>("/api/accept-messages", {
-        acceptMessages: !acceptMessages,
-      });
-      setValue("acceptMessages", !acceptMessages);
-      toast({
-        title: response.data.message,
-        variant: "default",
-      });
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
-      toast({
-        title: "Error",
-        description:
-          axiosError.response?.data.message ??
-          "Failed to update message settings",
-        variant: "destructive",
-      });
+    if (!session || !session.user) {
+      // Optionally, you could redirect to a login page here
+      return;
     }
+  }, [session]);
+
+  const handlePlay = (gameType: string) => {
+    router.push(`/play?type=${gameType}`); // Redirect to the game page with the type
   };
 
   if (!session || !session.user) {
-    return <div></div>;
+    return <div>Loading...</div>; // Consider a loading state or redirect to login
   }
 
-  const { username } = session.user as User;
-
-  const baseUrl = `${window.location.protocol}//${window.location.host}`;
-  const profileUrl = `${baseUrl}/u/${username}`;
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(profileUrl);
-    toast({
-      title: "URL Copied!",
-      description: "Profile URL has been copied to clipboard.",
-    });
-  };
-
   return (
-    <div className="my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
+    <div className="relative my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
       <h1 className="text-4xl font-bold mb-4">Play Game</h1>
-      <Spinner />
-      <div>
-        {/* <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Copy Your Unique Link</h2>{' '}
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={profileUrl}
-            disabled
-            className="input input-bordered w-full p-2 mr-2"
-          />
-          <Button onClick={copyToClipboard}>Copy</Button>
-        </div>
+      <div className="flex flex-col gap-4">
+        {/* Game mode buttons */}
+        <Button
+          onClick={() => handlePlay("quickplay")}
+          variant="outline"
+          className="bg-light-blue-200 text-blue-900  h-20 font-semibold hover:bg-light-blue-300 transition-all"
+        >
+          Quick Play
+        </Button>
+        <Button
+          onClick={() => handlePlay("coupleplay")}
+          variant="outline"
+          className="bg-red-200 text-red-900 h-20 font-semibold hover:bg-red-300 transition-all"
+        >
+          Couple Play
+        </Button>
+        <Button
+          onClick={() => handlePlay("broplay")}
+          variant="outline"
+          className="bg-green-200 text-green-900 h-20  font-semibold hover:bg-green-300 transition-all"
+        >
+          Bro Play
+        </Button>
+        <Button
+          onClick={() => handlePlay("pokyplay")}
+          variant="outline"
+          className="bg-purple-200 text-purple-900 h-20  font-semibold hover:bg-purple-300 transition-all"
+        >
+          Pokie Play (Girls Play)
+        </Button>
       </div>
-
-      <div className="mb-4">
-        <Switch
-          {...register('acceptMessages')}
-          checked={acceptMessages}
-          onCheckedChange={handleSwitchChange}
-          disabled={isSwitchLoading}
-        />
-        <span className="ml-2">
-          Accept Messages: {acceptMessages ? 'On' : 'Off'}
-        </span>
-      </div>
-      <Separator />
-
-      <Button
-        className="mt-4"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          fetchMessages(true);
-        }}
-      >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <RefreshCcw className="h-4 w-4" />
-        )}
-      </Button>
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6"> */}
-        {/* </div> */}
-      </div>
-      <Switch
-        {...register("acceptMessages")}
-        checked={acceptMessages}
-        onCheckedChange={handleSwitchChange}
-        disabled={isSwitchLoading}
-      />
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {messages.length > 0 ? (
-          messages.map((message, index) => (
-            <MessageCard
-              key={message._id}
-              message={message}
-              onMessageDelete={handleDeleteMessage}
-            />
-          ))
-        ) : (
-          <p>No messages to display.</p>
-        )}
-      </div>
-      <Button
-        className="mt-4"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          fetchMessages(true);
-        }}
-      >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <RefreshCcw className="h-4 w-4" />
-        )}
-      </Button>
+      <Separator className="my-4" />
     </div>
   );
 }
